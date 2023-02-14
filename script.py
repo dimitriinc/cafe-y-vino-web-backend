@@ -19,6 +19,7 @@ def validate_email_domain(email):
     except socket.gaierror:
         return False
 
+
 # EMAIL_RECIPIENT = "dimitriinc@proton.me"
 EMAIL_RECIPIENT = "elliotponsic@hotmail.fr"
 
@@ -31,9 +32,9 @@ cred = credentials.Certificate('cafe-y-vino-firebase-adminsdk-qdn8s-0f0ac07b32.j
 firebase_admin.initialize_app(cred)
 fStore = firestore.client()
 
+
 @app.route('/confirm-reservation')
 def confirm_reservation():
-
     name = request.args.get('name')
     date = request.args.get('date')
     hour = request.args.get('hour')
@@ -61,9 +62,9 @@ def confirm_reservation():
     server.quit()
     return jsonify({"message": "La confirmacion esta enviada exitosamente"})
 
+
 @app.route('/reject-reservation')
 def reject_reservation():
-
     name = request.args.get('name')
     date = request.args.get('date')
     hour = request.args.get('hour')
@@ -92,9 +93,8 @@ def reject_reservation():
     return jsonify({"message": "El rechazo esta enviado exitosamente"})
 
 
-@app.route('/reservations-request', methods = ['POST'])
+@app.route('/reservations-request', methods=['POST'])
 def reserv_request():
-
     data = request.get_json()
     name = data['name']
     tel = data['tel']
@@ -108,7 +108,7 @@ def reserv_request():
 
     if not validate_email_domain(email):
         return make_response("El dominio del email no es válido.", 201)
-    else: 
+    else:
         doc_ref = fStore.collection(f"reservas/{date}/reservas").add({
             "nombre": name,
             "telefono": tel,
@@ -153,14 +153,10 @@ def reserv_request():
         server.sendmail(msg['From'], msg['To'], msg.as_string())
         server.quit()
         return make_response("La solicitud está enviada!", 200)
-    
-
-    
 
 
-@app.route('/contact-msg', methods = ['POST'])
+@app.route('/contact-msg', methods=['POST'])
 def receive_msg():
-
     logging.info("receive-msg has started")
 
     data = request.get_json()
@@ -203,9 +199,8 @@ def receive_msg():
     return jsonify({"message": "Email sent successfully"})
 
 
-@app.route('/job-application', methods = ['POST'])
+@app.route('/job-application', methods=['POST'])
 def apply_job():
-
     logging.info("apply_job() has started")
 
     cv_file = request.files['cv']
@@ -249,7 +244,7 @@ def apply_job():
     msg['Subject'] = subject
 
     logging.info("LOG:: we are at the beginnig of the 'part' creation!!!")
-    
+
     part = MIMEApplication(cv_file_data, Name=cv_file.filename)
     part['Content-Disposition'] = f'attachment; filename="{cv_file.filename}"'
     msg.attach(part)
@@ -262,9 +257,8 @@ def apply_job():
     return jsonify({"message": "Email sent successfully"})
 
 
-@app.route('/signup', methods = ['POST'])
+@app.route('/signup', methods=['POST'])
 def signup():
-
     logging.info("the signup() has started!")
 
     data = request.get_json()
@@ -279,7 +273,7 @@ def signup():
         if len(documents):
             logging.info("the query is not empty")
             return make_response("Este email ya está en la lista", 201)
-        else:   
+        else:
             logging.info("query is EMPTY")
             collection_ref.add({
                 "nombre": name,
@@ -292,7 +286,6 @@ def signup():
         return make_response("El dominio del email no es válido.", 201)
 
 
-
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -300,8 +293,6 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
 
+
 if __name__ == '__main__':
-    app.run(debug = True, port = 8000)
-
-
-    
+    app.run(debug=True, port=8000)
