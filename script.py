@@ -10,6 +10,9 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 import socket
 
+# EMAIL_RECIPIENT = "dimitriinc@proton.me"
+EMAIL_RECIPIENT = "elliotponsic@hotmail.fr"
+
 
 def validate_email_domain(email):
     domain = email.split('@')[-1]
@@ -19,9 +22,6 @@ def validate_email_domain(email):
     except socket.gaierror:
         return False
 
-
-# EMAIL_RECIPIENT = "dimitriinc@proton.me"
-EMAIL_RECIPIENT = "elliotponsic@hotmail.fr"
 
 app = Flask(__name__)
 CORS(app)

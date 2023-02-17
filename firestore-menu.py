@@ -60,7 +60,7 @@ def custom_on_snapshot(docs, changes, read_time, table_name):
         try:
             doc_description = doc_data["descripcion"]
         except KeyError:
-            logging.info(f"{doc_data['nombre']} no tiene una descripcion")
+            logging.info(f"{doc_data['nombre    ']} no tiene una descripcion")
 
         if change.type.name == "ADDED":
             cursor.execute(
