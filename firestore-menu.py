@@ -45,30 +45,38 @@ fStore = firestore.client()
 bucket = storage.bucket()
 
 
-def on_snapshot(docs, changes, read_time):
+def custom_on_snapshot(docs, changes, read_time, table_name):
     db_connection = sqlite3.connect("firestore_menu.sqlite")
     cursor = db_connection.cursor()
     for change in changes:
         document = change.document
         doc_id = document.id
         doc_data = document.to_dict()
+
         image_blob = bucket.blob(doc_data["image"])
         doc_image = image_blob.download_as_string()
+
+        doc_description = "Lo sentimos, este producto no tiene una descripción."
+        try:
+            doc_description = doc_data["descripcion"]
+        except KeyError:
+            logging.info(f"{doc_data['nombre']} no tiene una descripcion")
+
         if change.type.name == "ADDED":
             cursor.execute(
-                "INSERT OR IGNORE INTO platos (id, nombre, precio, descripcion, isPresent, imagen) VALUES (?, ?, ?, ?, ?, ?)",
-                (doc_id, doc_data["nombre"], doc_data["precio"], doc_data["descripcion"], doc_data["isPresent"],
+                f"INSERT OR IGNORE INTO {table_name} (id, nombre, precio, descripcion, isPresent, imagen) VALUES (?, ?, ?, ?, ?, ?)",
+                (doc_id, doc_data["nombre"], doc_data["precio"], doc_description, doc_data["isPresent"],
                  doc_image))
             db_connection.commit()
         elif change.type.name == "MODIFIED":
             logging.info(f"A DOCUMENT IS MODIFIED - {doc_data['nombre']}")
             cursor.execute(
-                "UPDATE platos SET nombre=?, precio=?, descripcion=?, isPresent=?, imagen=? WHERE id=?",
-                (doc_data["nombre"], doc_data["precio"], doc_data["descripcion"], doc_data["isPresent"],
+                f"UPDATE {table_name} SET nombre=?, precio=?, descripcion=?, isPresent=?, imagen=? WHERE id=?",
+                (doc_data["nombre"], doc_data["precio"], doc_description, doc_data["isPresent"],
                  doc_image, doc_id))
             db_connection.commit()
         elif change.type.name == "REMOVED":
-            cursor.execute("DELETE FROM platos WHERE id=?", (doc_id,))
+            cursor.execute(f"DELETE FROM {table_name} WHERE id=?", (doc_id,))
             db_connection.commit()
 
 
@@ -78,10 +86,10 @@ def create_table(name):
     cursor.execute(f"""
     CREATE TABLE IF NOT EXISTS {name} (
         id TEXT PRIMARY KEY,
-        nombre TEXT NON NULL,
-        precio TEXT NON NULL,
-        descripcion TEXT NON NULL,
-        isPresent INTEGER NON NULL,
+        nombre TEXT,
+        precio TEXT,
+        descripcion TEXT,
+        isPresent INTEGER,
         imagen BLOB
     )
     """)
@@ -97,9 +105,16 @@ def populate_table(table_name, collection_path):
         logging.info(f"item's name:: {doc_snapshot.get('nombre')}")
         image_blob = bucket.blob(doc_snapshot.get("image"))
         doc_image = image_blob.download_as_string()
+
+        doc_description = "Lo sentimos, este producto no tiene una descripción."
+        try:
+            doc_description = doc_snapshot.get("descripcion")
+        except KeyError:
+            logging.info(f"{doc_snapshot.get('nombre')} no tiene una descripcion")
+
         cursor.execute(f"""
         INSERT OR IGNORE INTO {table_name} (id, nombre, precio, descripcion, isPresent, imagen) VALUES (?, ?, ?, ?, ?, ?)
-        """, (doc_snapshot.id, doc_snapshot.get("nombre"), doc_snapshot.get("precio"), doc_snapshot.get("descripcion"),
+        """, (doc_snapshot.id, doc_snapshot.get("nombre"), doc_snapshot.get("precio"), doc_description,
               doc_snapshot.get("isPresent"),
               doc_image))
         db_connection.commit()
@@ -108,7 +123,9 @@ def populate_table(table_name, collection_path):
 
 def listen_collection(collection_path, table_name):
     collection_reference = fStore.collection(collection_path)
-    collection_watch = collection_reference.on_snapshot(on_snapshot)
+    collection_watch = collection_reference.on_snapshot(
+        lambda docs, changes, read_time: custom_on_snapshot(docs, changes, read_time, table_name)
+    )
 
 
 for mapping in mappings:

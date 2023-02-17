@@ -2,3 +2,4 @@
 *.js
 *.sqlite
 .idea
+__pycache__
