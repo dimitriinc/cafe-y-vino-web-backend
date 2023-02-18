@@ -4,6 +4,7 @@ from firebase_admin import credentials, firestore, storage
 import sqlite3
 import logging
 from collection_table_mapping import Mapping
+import datetime
 
 PLATOS_COLLECTION_PATH = "menu/01.platos/platos"
 PIQUEOS_COLLECTION_PATH = "menu/02.piqueos/piqueos"
@@ -60,7 +61,7 @@ def custom_on_snapshot(docs, changes, read_time, table_name):
         try:
             doc_description = doc_data["descripcion"]
         except KeyError:
-            logging.info(f"{doc_data['nombre    ']} no tiene una descripcion")
+            logging.info(f"{doc_data['nombre']} no tiene una descripcion")
 
         if change.type.name == "ADDED":
             cursor.execute(
@@ -90,7 +91,7 @@ def create_table(name):
         precio TEXT,
         descripcion TEXT,
         isPresent INTEGER,
-        imagen BLOB
+        imagen TEXT
     )
     """)
     db_connection.commit()
@@ -104,7 +105,10 @@ def populate_table(table_name, collection_path):
     for doc_snapshot in collection_snapshot:
         logging.info(f"item's name:: {doc_snapshot.get('nombre')}")
         image_blob = bucket.blob(doc_snapshot.get("image"))
-        doc_image = image_blob.download_as_string()
+        doc_image = image_blob.generate_signed_url(
+            method='GET',
+            expiration=datetime.datetime(9999, 12, 31)
+        )
 
         doc_description = "Lo sentimos, este producto no tiene una descripción."
         try:

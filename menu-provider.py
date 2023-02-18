@@ -1,79 +1,54 @@
-from flask import Flask, jsonify, make_response
+from flask import Flask, jsonify, make_response, request
 import sqlite3
 import logging
+from flask_cors import CORS
 
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
+CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
+
 
 def get_collection(table_name):
     connection = sqlite3.connect("firestore_menu.sqlite")
     cursor = connection.cursor()
-    collection = cursor.execute(f"SELECT * FROM {table_name} WHERE isPresent=?", (1,))
+    cursor.execute(f"SELECT * FROM {table_name} WHERE isPresent=? ORDER BY nombre", (1,))
+    collection = cursor.fetchall()
+    cursor.close()
     connection.close()
-    return collection
+
+    results = []
+
+    for product in collection:
+        result = {
+            'nombre': product[1],
+            'precio': product[2],
+            'descripcion': product[3],
+            'imagen': product[5]
+        }
+        results.append(result)
+
+    return results
 
 
-@app.route('/get-platos')
-def get_platos():
-    collection = get_collection("platos")
+@app.route('/get-collection', methods=['GET'])
+def get_collection():
+    logging.info("request received")
+    table_name = request.args.get('table-name')
+    logging.info(f"the table name is:: {table_name}")
+    collection = get_collection(table_name)
+    return jsonify(collection)
 
 
-@app.route('/get-piqueos')
-def get_piqueos():
-    collection = get_collection("piqueos")
-
-
-@app.route('/get-vinos-blancos')
-def get_vinos_blancos():
-    collection = get_collection("vinos_blancos")
-
-
-@app.route('/get-vinos-tintos')
-def get_vinos_tintos():
-    collection = get_collection("vinos_tintos")
-
-
-@app.route('/get-vinos-rose')
-def get_vinos_rose():
-    collection = get_collection("vinos_rose")
-
-
-@app.route('/get-vinos-postre')
-def get_vinos_postre():
-    collection = get_collection("vinos_postre")
-
-
-@app.route('/get-vinos-copa')
-def get_vinos_copa():
-    collection = get_collection("vinos_copa")
-
-
-@app.route('/get-cocteles')
-def get_cocteles():
-    collection = get_collection("cocteles")
-
-
-@app.route('/get-cervezas')
-def get_cervezas():
-    collection = get_collection("cervezas")
-
-
-@app.route('/get-bebidas-calientes')
-def get_bebidas_calientes():
-    collection = get_collection("bebidas_calientes")
-
-
-@app.route('/get-postres')
-def get_postres():
-    collection = get_collection("postres")
-
-
-@app.route('/get-ofertas')
-def get_ofertas():
-    collection = get_collection("ofertas")
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8080)
+    app.run(debug=True, port=8000)
