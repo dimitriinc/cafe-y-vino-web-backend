@@ -10,8 +10,10 @@ app = Flask(__name__)
 CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
+logging.info("hello world~")
 
-def get_collection(table_name):
+
+def get_products(table_name):
     connection = sqlite3.connect("firestore_menu.sqlite")
     cursor = connection.cursor()
     cursor.execute(f"SELECT * FROM {table_name} WHERE isPresent=? ORDER BY nombre", (1,))
@@ -33,19 +35,20 @@ def get_collection(table_name):
     return results
 
 
-@app.route('/get-collection', methods=['GET'])
+@app.route('/get-collection')
 def get_collection():
     logging.info("request received")
     table_name = request.args.get('table-name')
     logging.info(f"the table name is:: {table_name}")
-    collection = get_collection(table_name)
-    return jsonify(collection)
+    products = get_products(table_name)
+    return jsonify(products)
 
 
 @app.after_request
 def after_request(response):
+    logging.info("after the request")
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,Access-Control-Allow-Origin')
     response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
 

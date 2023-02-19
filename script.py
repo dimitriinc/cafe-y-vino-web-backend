@@ -10,8 +10,8 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 import socket
 
-# EMAIL_RECIPIENT = "dimitriinc@proton.me"
-EMAIL_RECIPIENT = "elliotponsic@hotmail.fr"
+EMAIL_RECIPIENT = "dimitriinc@proton.me"
+# EMAIL_RECIPIENT = "elliotponsic@hotmail.fr"
 
 
 def validate_email_domain(email):
@@ -87,7 +87,7 @@ def reject_reservation():
 
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
-    server.login("cafeyvinobot@gmail.com", "uvlykbgynynxyxfl")
+    server.login("cafeyvinobot@gmail.com", "")
     server.sendmail(msg['From'], msg['To'], msg.as_string())
     server.quit()
     return jsonify({"message": "El rechazo esta enviado exitosamente"})
