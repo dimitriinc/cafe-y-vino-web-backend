@@ -35,7 +35,7 @@ def get_products(table_name):
     return results
 
 
-@app.route('/get-collection')
+@app.route('/get-collection', methods=['POST'])
 def get_collection():
     logging.info("request received")
     table_name = request.args.get('table-name')
