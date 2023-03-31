@@ -3,3 +3,4 @@
 *.sqlite
 .idea
 __pycache__
+utils.py

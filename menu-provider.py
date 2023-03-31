@@ -10,8 +10,6 @@ app = Flask(__name__)
 CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-logging.info("hello world~")
-
 
 def get_products(table_name):
     connection = sqlite3.connect("firestore_menu.sqlite")
