@@ -66,6 +66,7 @@ def fetch_reservations_array(date):
 
     for reservation in collection:
         result = {
+            'id': reservation[0],
             'arrival_timestamp': reservation[1],
             'name': reservation[2],
             'hour': reservation[3],
@@ -133,8 +134,8 @@ def make_reservation():
                     <p>Teléfono:  <em>{phone}</em></p>
                 </div>
                 <div style='align-text:center'>
-                    <a style='text-decoration:none' href="https://d4f3-190-238-135-197.sa.ngrok.io/confirm-reservation?email={email}&name={name}&date={date}&hour={hour}&id={doc_id}"><button style='background-color:#fcfaeb;color:#160b17;padding:1rem;border:1px solid;display:block;margin-bottom:1rem;margin-left:auto;margin-right:auto;border-radius:50px;'>Confirmar</button></a>
-                    <a style='text-decoration:none' href="https://d4f3-190-238-135-197.sa.ngrok.io/reject-reservation?email={email}&name={name}&date={date}&hour={hour}&id={doc_id}"><button style='background-color:#fcfaeb;color:#160b17;padding:1rem;border:1px solid;display:block;margin-left:auto;margin-right:auto;border-radius:50px;'>Rechazar</button></a>
+                    <a style='text-decoration:none' href="https://85eb-190-238-135-197.sa.ngrok.io/confirm-reservation?email={email}&name={name}&date={date}&hour={hour}&id={doc_id}"><button style='background-color:#fcfaeb;color:#160b17;padding:1rem;border:1px solid;display:block;margin-bottom:1rem;margin-left:auto;margin-right:auto;border-radius:50px;'>Confirmar</button></a>
+                    <a style='text-decoration:none' href="https://85eb-190-238-135-197.sa.ngrok.io/reject-reservation?email={email}&name={name}&date={date}&hour={hour}&id={doc_id}"><button style='background-color:#fcfaeb;color:#160b17;padding:1rem;border:1px solid;display:block;margin-left:auto;margin-right:auto;border-radius:50px;'>Rechazar</button></a>
                 </div>
             </body></html>
         '''
@@ -159,6 +160,81 @@ def get_reservations():
     logging.info(f'DATE REQUEST FOR {date}')
     reservations = fetch_reservations_array(date)
     return jsonify(reservations)
+
+
+@app.route('/confirm-reservation')
+def confirm_reservation():
+    name = request.args.get('name')
+    date = request.args.get('date')
+    hour = request.args.get('hour')
+    doc_id = request.args.get('id')
+
+    db_connection = sqlite3.connect('reservations.sqlite')
+    cursor = db_connection.cursor()
+    cursor.execute("""
+        UPDATE reservations 
+        SET confirmed=? 
+        WHERE id=?
+    """,
+                   (True, doc_id))
+    db_connection.commit()
+    db_connection.close()
+
+    msg = MIMEMultipart()
+    to = request.args.get('email')
+    subject = "Confirmación de reserva"
+    html = f'''
+        <html><body>
+            <p>Hola, {name}! Tu reserva para {date} a las {hour} está confirmada.<br>Nos vemos pronto!</p>
+        </body></html>
+    '''
+    msg.attach(MIMEText(html, 'html'))
+    msg['From'] = "cafeyvinobot@gmail.com"
+    msg['To'] = to
+    msg['Subject'] = subject
+
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login("cafeyvinobot@gmail.com", app_specific_password_bot)
+    server.sendmail(msg['From'], msg['To'], msg.as_string())
+    server.quit()
+
+    return make_response("La confirmacion está enviada.")
+
+
+@app.route('/reject-reservation')
+def reject_reservation():
+    name = request.args.get('name')
+    date = request.args.get('date')
+    hour = request.args.get('hour')
+    doc_id = request.args.get('id')
+
+    db_connection = sqlite3.connect('reservations.sqlite')
+    cursor = db_connection.cursor()
+    cursor.execute("DELETE FROM reservations WHERE id=?", (doc_id,))
+    db_connection.commit()
+    db_connection.close()
+
+    msg = MIMEMultipart()
+    to = request.args.get('email')
+    subject = "Rechazo de reserva"
+    html = f'''
+        <html><body>
+            <p>Hola, {name}! Lo sentimos, pero tu reserva para {date} a las {hour} está rechazada.<br>El restaurante estará en su capasitad a la hora indicada.</p>
+        </body></html>
+    '''
+    msg.attach(MIMEText(html, 'html'))
+    msg['From'] = "cafeyvinobot@gmail.com"
+    msg['To'] = to
+    msg['Subject'] = subject
+
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login("cafeyvinobot@gmail.com", app_specific_password_bot)
+    server.sendmail(msg['From'], msg['To'], msg.as_string())
+    server.quit()
+
+    return make_response("El rechazo está enviado.")
 
 
 if __name__ == '__main__':
