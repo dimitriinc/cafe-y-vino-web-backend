@@ -43,6 +43,7 @@ def create_table():
             phone TEXT,
             comment TEXT,
             date TEXT,
+            email TEXT,
             confirmed INTEGER
         )
     """)
@@ -73,7 +74,9 @@ def fetch_reservations_array(date):
             'pax': reservation[4],
             'phone': reservation[5],
             'comment': reservation[6],
-            'confirmed': reservation[8]
+            'date': reservation[7],
+            'email': reservation[8],
+            'confirmed': reservation[9]
         }
         results.append(result)
 
@@ -113,10 +116,10 @@ def make_reservation():
         db_connection = sqlite3.connect('reservations.sqlite')
         cursor = db_connection.cursor()
         cursor.execute(f"""
-            INSERT INTO reservations (id, arrival_timestamp, name, hour, pax, phone, comment, date, confirmed) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, False)
+            INSERT INTO reservations (id, arrival_timestamp, name, hour, pax, phone, comment, date, email, confirmed) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, False)
         """,
-                       (doc_id, arrival_timestamp, name, hour, pax, phone, comment, date))
+                       (doc_id, arrival_timestamp, name, hour, pax, phone, comment, date, email))
         db_connection.commit()
         db_connection.close()
 
@@ -162,7 +165,7 @@ def get_reservations():
     return jsonify(reservations)
 
 
-@app.route('/confirm-reservation')
+@app.route('/confirm-reservation', methods=['GET', 'POST'])
 def confirm_reservation():
     name = request.args.get('name')
     date = request.args.get('date')
@@ -202,7 +205,7 @@ def confirm_reservation():
     return make_response("La confirmacion está enviada.")
 
 
-@app.route('/reject-reservation')
+@app.route('/reject-reservation', methods=['GET', 'POST'])
 def reject_reservation():
     name = request.args.get('name')
     date = request.args.get('date')
