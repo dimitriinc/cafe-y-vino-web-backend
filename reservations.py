@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify, make_response
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from email.mime.application import MIMEApplication
 import logging
 from flask_cors import CORS
 import firebase_admin
@@ -11,12 +10,9 @@ from firebase_admin import firestore
 import socket
 import uuid
 import sqlite3
-import datetime
 from utils import app_specific_password_bot
 
 EMAIL_RECIPIENT = "dimitriinc@proton.me"
-
-
 # EMAIL_RECIPIENT = "elliotponsic@hotmail.fr"
 
 
