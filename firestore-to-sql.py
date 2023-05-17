@@ -138,4 +138,4 @@ for mapping in mappings:
     listen_collection(mapping.get_collection_path(), mapping.get_table_name())
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    app.run(debug=True, port=8080)
