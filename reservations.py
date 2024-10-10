@@ -92,17 +92,19 @@ fStore = firestore.client()
 @app.route('/make-reservation', methods=['POST'])
 def make_reservation():
     reservation = request.get_json()
-    arrival_timestamp = reservation['arrivalTimestamp']
+    # arrival_timestamp = reservation['arrivalTimestamp']
+    # name = reservation['name']
+    # hour = reservation['hour']
+    # pax = reservation['pax']
+    # phone = reservation['phone']
+    # comment = reservation['comment']
+    # email = reservation['email']
+    # date = reservation['date']
+    # doc_id = str(uuid.uuid4())
+    #
+    # logging.info(f"Received a request from {name}. For {pax} persons. On date - {date}")
     name = reservation['name']
-    hour = reservation['hour']
-    pax = reservation['pax']
-    phone = reservation['phone']
-    comment = reservation['comment']
-    email = reservation['email']
-    date = reservation['date']
-    doc_id = str(uuid.uuid4())
-
-    logging.info(f"Received a request from {name}. For {pax} persons. On date - {date}")
+    logging.info(f"The ADMIN_TOKEN is - {name}")
 
     if not validate_email_domain(email):
         return make_response("El dominio del email no es válido.", 201)
@@ -133,8 +135,8 @@ def make_reservation():
                     <p>Teléfono:  <em>{phone}</em></p>
                 </div>
                 <div style='align-text:center'>
-                    <a style='text-decoration:none' href="https://85eb-190-238-135-197.sa.ngrok.io/confirm-reservation?email={email}&name={name}&date={date}&hour={hour}&id={doc_id}"><button style='background-color:#fcfaeb;color:#160b17;padding:1rem;border:1px solid;display:block;margin-bottom:1rem;margin-left:auto;margin-right:auto;border-radius:50px;'>Confirmar</button></a>
-                    <a style='text-decoration:none' href="https://85eb-190-238-135-197.sa.ngrok.io/reject-reservation?email={email}&name={name}&date={date}&hour={hour}&id={doc_id}"><button style='background-color:#fcfaeb;color:#160b17;padding:1rem;border:1px solid;display:block;margin-left:auto;margin-right:auto;border-radius:50px;'>Rechazar</button></a>
+                    <a style='text-decoration:none' href="https://5506-2001-1388-5321-d487-f9b-f26e-9b91-9686.ngrok-free.app/confirm-reservation?email={email}&name={name}&date={date}&hour={hour}&id={doc_id}"><button style='background-color:#fcfaeb;color:#160b17;padding:1rem;border:1px solid;display:block;margin-bottom:1rem;margin-left:auto;margin-right:auto;border-radius:50px;'>Confirmar</button></a>
+                    <a style='text-decoration:none' href="https://5506-2001-1388-5321-d487-f9b-f26e-9b91-9686.ngrok-free.app/reject-reservation?email={email}&name={name}&date={date}&hour={hour}&id={doc_id}"><button style='background-color:#fcfaeb;color:#160b17;padding:1rem;border:1px solid;display:block;margin-left:auto;margin-right:auto;border-radius:50px;'>Rechazar</button></a>
                 </div>
             </body></html>
         '''
@@ -161,6 +163,7 @@ def get_reservations():
     return jsonify(reservations)
 
 
+# Refactor it to accept JSON with a POST
 @app.route('/confirm-reservation', methods=['GET', 'POST'])
 def confirm_reservation():
     name = request.args.get('name')
@@ -201,6 +204,7 @@ def confirm_reservation():
     return make_response("La confirmacion está enviada.")
 
 
+# Refactor it to accept JSON with a POST
 @app.route('/reject-reservation', methods=['GET', 'POST'])
 def reject_reservation():
     name = request.args.get('name')

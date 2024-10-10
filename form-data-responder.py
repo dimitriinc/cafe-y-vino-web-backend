@@ -9,6 +9,7 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 import socket
+from utils import app_specific_password_bot
 
 EMAIL_RECIPIENT = "dimitriinc@proton.me"
 # EMAIL_RECIPIENT = "elliotponsic@hotmail.fr"
@@ -70,7 +71,7 @@ def receive_msg():
 
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
-    server.login("cafeyvinobot@gmail.com", "uvlykbgynynxyxfl")
+    server.login("cafeyvinobot@gmail.com", app_specific_password_bot)
     server.sendmail(msg['From'], msg['To'], msg.as_string())
     server.quit()
     return jsonify({"message": "Email sent successfully"})
@@ -120,15 +121,13 @@ def apply_job():
     msg['To'] = EMAIL_RECIPIENT
     msg['Subject'] = subject
 
-    logging.info("LOG:: we are at the beginnig of the 'part' creation!!!")
-
     part = MIMEApplication(cv_file_data, Name=cv_file.filename)
     part['Content-Disposition'] = f'attachment; filename="{cv_file.filename}"'
     msg.attach(part)
 
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
-    server.login("cafeyvinobot@gmail.com", "uvlykbgynynxyxfl")
+    server.login("cafeyvinobot@gmail.com", app_specific_password_bot)
     server.sendmail(msg['From'], msg['To'], msg.as_string())
     server.quit()
     return jsonify({"message": "Email sent successfully"})
@@ -136,11 +135,13 @@ def apply_job():
 
 @app.route('/signup', methods=['POST'])
 def signup():
-    logging.info("the signup() has started!")
+    logging.info("the signup has started!")
 
     data = request.get_json()
     name = data.get('name')
     email = data.get('email')
+
+    logging.info(f"name: {name}\nemail:{email}")
 
     if validate_email_domain(email):
 
@@ -164,4 +165,4 @@ def signup():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    app.run(debug=True, port=8080)
